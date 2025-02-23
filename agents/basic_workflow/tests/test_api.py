@@ -49,6 +49,7 @@ async def test_stream_completion(api_client, monkeypatch):
                 b'data: [DONE]\n'
             ]
             self._index = 0
+            self.content = self
 
         async def __aiter__(self):
             return self
