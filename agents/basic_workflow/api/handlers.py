@@ -20,7 +20,12 @@ class ThinkTagHandler:
     def process_chunk(self, chunk: str) -> Optional[str]:
         """Process a response chunk and handle think tags."""
         try:
-            data = json.loads(chunk.replace('data: ', ''))
+            if chunk.startswith('data: '):
+                chunk = chunk.replace('data: ', '')
+                if chunk == '[DONE]':
+                    return None
+                    
+            data = json.loads(chunk)
             content = data['choices'][0]['delta'].get('content', '')
             
             if '<think>' in content:
