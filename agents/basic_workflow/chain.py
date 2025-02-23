@@ -90,11 +90,19 @@ class DocumentWorkflow:
         
         # Connect nodes
         graph.add_edge("generate", "review")
-        graph.add_conditional_edges("review", should_revise)
+        graph.add_conditional_edges(
+            "review",
+            should_revise,
+            {
+                "revise": "revise",
+                "end": "end"
+            }
+        )
         graph.add_edge("revise", "review")
         
-        # Set entry point
+        # Set entry and end points
         graph.set_entry_point("generate")
+        graph.add_node("end", lambda x: x)
         
         return graph.compile()
     
