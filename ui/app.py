@@ -26,7 +26,7 @@ def save_uploadedfile(uploaded_file) -> Optional[Path]:
         tmp.write(uploaded_file.getvalue())
         return Path(tmp.name)
 
-async def main():
+def main():
     st.title("Document Processing Workflow")
     
     # Initialize session state
@@ -79,10 +79,10 @@ async def main():
         # Process document with progress bar
         with st.spinner("Processing document..."):
             try:
-                result = await workflow.run({
+                result = asyncio.run(workflow.run({
                     "document": DocumentState(content=document_content),
                     "config": config
-                })
+                }))
                 
                 # Display results
                 st.header("Results")
@@ -117,5 +117,4 @@ async def main():
                 st.error(f"Error processing document: {str(e)}")
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    main()
