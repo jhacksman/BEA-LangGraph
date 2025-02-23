@@ -105,12 +105,12 @@ class DocumentWorkflow:
     def _build_graph(self) -> Graph:
         """Build the workflow graph with generation, review, and revision nodes."""
         # Create the graph
-        graph = StateGraph(nodes=["generate", "review", "revise"])
+        graph = StateGraph()
         
         # Add nodes
-        graph.add_node("generate", create_generation_node(self.client))
-        graph.add_node("review", create_review_node(self.client))
-        graph.add_node("revise", create_revision_node(self.client))
+        graph.add("generate", create_generation_node(self.client))
+        graph.add("review", create_review_node(self.client))
+        graph.add("revise", create_revision_node(self.client))
         
         # Define edges
         def should_revise(state: Dict[str, Any]) -> str:

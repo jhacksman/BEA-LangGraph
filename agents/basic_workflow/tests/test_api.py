@@ -38,8 +38,20 @@ def test_think_tag_handling():
     assert handler.get_think_content() == "reasoning"
 
 @pytest.mark.asyncio
-async def test_stream_completion(api_client):
+async def test_stream_completion(api_client, monkeypatch):
     """Test streaming completion with think tag handling."""
+    async def mock_post(*args, **kwargs):
+        class MockResponse:
+            status = 200
+            async def content(self):
+                yield b'data: {"choices":[{"delta":{"content":"<think>reasoning</think>"}}]}\n'
+                yield b'data: {"choices":[{"delta":{"content":"test content"}}]}\n'
+                yield b'data: [DONE]\n'
+        return MockResponse()
+    
+    import aiohttp
+    monkeypatch.setattr(aiohttp.ClientSession, "post", mock_post)
+    
     messages = [
         {"role": "user", "content": "test prompt"}
     ]
@@ -49,4 +61,5 @@ async def test_stream_completion(api_client):
         if not chunk.startswith("__THINK__"):
             chunks.append(chunk)
     
-    assert len(chunks) > 0
+    assert len(chunks) == 1
+    assert chunks[0] == "test content"
