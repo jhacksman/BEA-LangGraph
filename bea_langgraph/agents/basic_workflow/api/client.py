@@ -5,6 +5,7 @@ This module provides a client for interacting with the venice.ai API,
 handling think tags and streaming responses.
 """
 
+import asyncio
 import aiohttp
 from typing import AsyncGenerator, List, Dict, Any
 import json
@@ -33,6 +34,7 @@ class VeniceClient:
         model: str = "deepseek-r1-671b",
         temperature: float = 0.7,
         max_tokens: int = 1000,
+        timeout: float = 120.0
     ) -> AsyncGenerator[str, None]:
         """Stream a chat completion from the API.
         
@@ -41,34 +43,74 @@ class VeniceClient:
             model: Model to use for completion
             temperature: Sampling temperature
             max_tokens: Maximum tokens to generate
+            timeout: Request timeout in seconds
             
         Yields:
-            Generated text chunks with think tags removed
+            Generated text chunks with think tags processed
         """
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{self.base_url}/chat/completions",
-                headers=self.headers,
-                json={
-                    "model": model,
-                    "messages": messages,
-                    "temperature": temperature,
-                    "max_tokens": max_tokens,
-                    "stream": True
-                }
-            ) as response:
-                handler = ThinkTagHandler()
-                
-                if response.status != 200:
-                    error_text = await response.text()
-                    raise Exception(f"API request failed: {response.status} - {error_text}")
-                
-                async for line in response.content:
-                    if line:
-                        chunk = line.decode('utf-8').strip()
-                        if chunk and chunk != "data: [DONE]":
-                            processed = handler.process_chunk(chunk)
-                            if processed:
-                                yield processed
-                            elif not handler._in_think_section and handler.get_think_content():
-                                yield f"__THINK__: {handler.get_think_content()}"
+        if not messages:
+            raise ValueError("Messages cannot be empty")
+        if not isinstance(messages, list):
+            raise ValueError("Messages must be a list")
+            
+        handler = ThinkTagHandler()
+        max_retries = 3
+        retry_delay = 1.0
+        
+        for attempt in range(max_retries):
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        f"{self.base_url}/chat/completions",
+                        headers=self.headers,
+                        json={
+                            "model": model,
+                            "messages": messages,
+                            "temperature": temperature,
+                            "max_tokens": max_tokens,
+                            "stream": True
+                        },
+                        timeout=aiohttp.ClientTimeout(total=timeout)
+                    ) as response:
+                        if response.status != 200:
+                            error_text = await response.text()
+                            raise Exception(f"API request failed: {response.status} - {error_text}")
+                        
+                        async for line in response.content:
+                            if not line:
+                                continue
+                                
+                            chunk = line.decode('utf-8').strip()
+                            if not chunk or chunk == 'data: [DONE]':
+                                continue
+                                
+                            if not chunk.startswith('data: '):
+                                print(f"Unexpected chunk format: {chunk}")
+                                continue
+                                
+                            try:
+                                data = json.loads(chunk[6:])  # Skip 'data: ' prefix
+                                if not isinstance(data, dict) or 'choices' not in data:
+                                    continue
+                                    
+                                if not data.get('choices') or not isinstance(data['choices'], list):
+                                    continue
+                                delta = data['choices'][0].get('delta', {})
+                                if not isinstance(delta, dict):
+                                    continue
+                                content = delta.get('content', '')
+                                if content:
+                                    yield content
+                            except json.JSONDecodeError as e:
+                                print(f"Failed to parse chunk: {chunk} - {str(e)}")
+                            except Exception as e:
+                                print(f"Error processing chunk: {str(e)}")
+                                continue
+                        return
+                        
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                if attempt == max_retries - 1:
+                    raise Exception(f"API request failed after {max_retries} attempts: {str(e)}")
+                print(f"Attempt {attempt + 1} failed, retrying in {retry_delay} seconds...")
+                await asyncio.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff

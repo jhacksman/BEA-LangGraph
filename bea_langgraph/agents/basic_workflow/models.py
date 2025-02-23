@@ -5,8 +5,8 @@ This module defines the data models used to track document state and workflow
 configuration throughout the processing pipeline.
 """
 
-from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
+from pydantic import BaseModel, Field
 
 class DocumentState(BaseModel):
     """State model for tracking document processing progress."""
@@ -14,6 +14,11 @@ class DocumentState(BaseModel):
     metadata: Dict = Field(default_factory=dict)
     review_feedback: Optional[List[str]] = None
     revision_history: List[str] = Field(default_factory=list)
+    
+    class Config:
+        validate_assignment = True
+        arbitrary_types_allowed = True
+        allow_mutation = True
     
     def add_feedback(self, feedback: str) -> None:
         """Add review feedback to the document state."""
@@ -32,6 +37,7 @@ class WorkflowConfig(BaseModel):
     max_revisions: int = Field(default=3, ge=1)
     require_approval: bool = True
     
-    class Config:
-        """Pydantic model configuration."""
-        validate_assignment = True
+    model_config = {
+        "validate_assignment": True,
+        "arbitrary_types_allowed": True
+    }

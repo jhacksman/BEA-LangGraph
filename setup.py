@@ -6,8 +6,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         "streamlit",
-        "langgraph",
         "aiohttp",
-        "pydantic"
+        "pydantic==1.10.13",
+        "typing-extensions>=4.5.0"
     ]
 )

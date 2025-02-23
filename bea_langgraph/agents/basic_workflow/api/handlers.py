@@ -20,37 +20,33 @@ class ThinkTagHandler:
     def process_chunk(self, chunk: str) -> Optional[str]:
         """Process a response chunk and handle think tags."""
         try:
-            if isinstance(chunk, bytes):
-                chunk = chunk.decode('utf-8')
-            if chunk.startswith('data: '):
-                chunk = chunk.replace('data: ', '')
-                if chunk == '[DONE]':
-                    return None
-                    
-            data = json.loads(chunk)
-            content = data['choices'][0]['delta'].get('content', '')
-            
-            # Handle combined think tags in one chunk
-            if '<think>' in content and '</think>' in content:
-                think_content = content.replace('<think>', '').replace('</think>', '')
-                self._think_buffer.append(think_content)
+            content = chunk.strip()
+            if not content:
                 return None
                 
-            # Handle split think tags
+            # Handle think tags
             if '<think>' in content:
                 self._in_think_section = True
-                self._think_buffer.append(content.replace('<think>', ''))
-                return None
-                
+                content = content.replace('<think>', '')
+            
             if self._in_think_section:
                 if '</think>' in content:
                     self._in_think_section = False
-                    self._think_buffer.append(content.replace('</think>', ''))
+                    content = content.replace('</think>', '')
+                    self._think_buffer.append(content)
+                    think_content = ''.join(self._think_buffer)
+                    self._think_buffer = []
+                    if think_content.strip():
+                        return f"__THINK__: {think_content.strip()}"
                     return None
                 self._think_buffer.append(content)
                 return None
-                
-            return content if content else None
+            
+            return content if content.strip() else None
+            
+        except Exception as e:
+            print(f"Error processing chunk: {str(e)}")
+            return None
             
         except json.JSONDecodeError:
             return None
