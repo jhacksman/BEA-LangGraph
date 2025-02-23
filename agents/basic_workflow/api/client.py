@@ -73,3 +73,7 @@ class VeniceClient:
                 # Yield any remaining think content as metadata
                 if think_content := handler.get_think_content():
                     yield f"__THINK__: {think_content}"
+                
+                # Yield any remaining think content as metadata
+                if think_content := handler.get_think_content():
+                    yield f"__THINK__: {think_content}"
