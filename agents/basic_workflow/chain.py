@@ -23,7 +23,7 @@ def create_generation_node(client: VeniceClient):
         
         # Synchronous function for testing
         doc_state.content = "Generated document"
-        return {"document": doc_state}
+        return {"document": doc_state, "config": config}
     
     return generate
 
@@ -35,7 +35,7 @@ def create_review_node(client: VeniceClient):
         
         # Synchronous function for testing
         doc_state.add_feedback("Test feedback")
-        return {"document": doc_state}
+        return {"document": doc_state, "config": config}
     
     return review
 
@@ -46,11 +46,11 @@ def create_revision_node(client: VeniceClient):
         config = cast(WorkflowConfig, state["config"])
         
         if not doc_state.review_feedback:
-            return {"document": doc_state}
+            return {"document": doc_state, "config": config}
         
         # Synchronous function for testing
         doc_state.add_revision("Revised document")
-        return {"document": doc_state}
+        return {"document": doc_state, "config": config}
     
     return revise
 
