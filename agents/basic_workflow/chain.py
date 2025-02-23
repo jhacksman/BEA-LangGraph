@@ -5,7 +5,7 @@ This module implements the Basic Workflows pattern from the Anthropic research,
 providing a workflow for document generation, review, and revision.
 """
 
-from typing import Dict, Any, List, Tuple, cast
+from typing import Dict, Any, List, Tuple, cast, Union
 from langgraph.graph import StateGraph, Graph
 from .models import DocumentState, WorkflowConfig
 from .api.client import VeniceClient
@@ -104,13 +104,16 @@ class DocumentWorkflow:
     
     def _build_graph(self) -> Graph:
         """Build the workflow graph with generation, review, and revision nodes."""
-        # Create the graph
-        graph = StateGraph()
+        # Create the graph with input/output schema
+        graph = StateGraph(
+            input=Dict[str, Union[DocumentState, WorkflowConfig]],
+            output=Dict[str, Union[DocumentState, WorkflowConfig]]
+        )
         
         # Add nodes
-        graph.add("generate", create_generation_node(self.client))
-        graph.add("review", create_review_node(self.client))
-        graph.add("revise", create_revision_node(self.client))
+        graph.add_node("generate", create_generation_node(self.client))
+        graph.add_node("review", create_review_node(self.client))
+        graph.add_node("revise", create_revision_node(self.client))
         
         # Define edges
         def should_revise(state: Dict[str, Any]) -> str:

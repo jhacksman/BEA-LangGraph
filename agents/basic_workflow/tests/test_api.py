@@ -40,13 +40,20 @@ def test_think_tag_handling():
 @pytest.mark.asyncio
 async def test_stream_completion(api_client, monkeypatch):
     """Test streaming completion with think tag handling."""
+    class MockResponse:
+        status = 200
+        async def content(self):
+            yield b'data: {"choices":[{"delta":{"content":"<think>reasoning</think>"}}]}\n'
+            yield b'data: {"choices":[{"delta":{"content":"test content"}}]}\n'
+            yield b'data: [DONE]\n'
+        
+        async def __aenter__(self):
+            return self
+            
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+    
     async def mock_post(*args, **kwargs):
-        class MockResponse:
-            status = 200
-            async def content(self):
-                yield b'data: {"choices":[{"delta":{"content":"<think>reasoning</think>"}}]}\n'
-                yield b'data: {"choices":[{"delta":{"content":"test content"}}]}\n'
-                yield b'data: [DONE]\n'
         return MockResponse()
     
     import aiohttp
