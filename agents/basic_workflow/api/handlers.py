@@ -20,6 +20,8 @@ class ThinkTagHandler:
     def process_chunk(self, chunk: str) -> Optional[str]:
         """Process a response chunk and handle think tags."""
         try:
+            if isinstance(chunk, bytes):
+                chunk = chunk.decode('utf-8')
             if chunk.startswith('data: '):
                 chunk = chunk.replace('data: ', '')
                 if chunk == '[DONE]':
