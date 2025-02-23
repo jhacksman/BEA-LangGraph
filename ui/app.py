@@ -12,8 +12,9 @@ import streamlit as st
 import tempfile
 from pathlib import Path
 from typing import List, Optional
+import asyncio
 
-from agents.basic_workflow import DocumentWorkflow, WorkflowConfig
+from agents.basic_workflow import DocumentWorkflow, WorkflowConfig, DocumentState
 from agents.basic_workflow.api.client import VeniceClient
 
 def save_uploadedfile(uploaded_file) -> Optional[Path]:
@@ -25,7 +26,7 @@ def save_uploadedfile(uploaded_file) -> Optional[Path]:
         tmp.write(uploaded_file.getvalue())
         return Path(tmp.name)
 
-def main():
+async def main():
     st.title("Document Processing Workflow")
     
     # Initialize session state
@@ -116,4 +117,5 @@ def main():
                 st.error(f"Error processing document: {str(e)}")
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())
