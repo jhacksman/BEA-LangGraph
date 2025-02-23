@@ -104,10 +104,9 @@ class DocumentWorkflow:
     
     def _build_graph(self) -> Graph:
         """Build the workflow graph with generation, review, and revision nodes."""
-        # Create the graph with input/output schema
+        # Create the graph with state schema
         graph = StateGraph(
-            input=Dict[str, Union[DocumentState, WorkflowConfig]],
-            output=Dict[str, Union[DocumentState, WorkflowConfig]]
+            state_schema=Dict[str, Union[DocumentState, WorkflowConfig]]
         )
         
         # Add nodes
@@ -146,7 +145,7 @@ class DocumentWorkflow:
         }
         
         try:
-            result = await self.graph.arun(state)
+            result = await self.graph.invoke(state)
             return result
         except Exception as e:
             raise Exception(f"Workflow execution failed: {str(e)}")
