@@ -76,6 +76,7 @@ class DocumentWorkflow:
                         print(f"\rGenerating document... ({len(content)} chars)", end="", flush=True)
                         # Break if we have a complete document with sufficient content
                         if len(content) > 200 and content.count('\n\n') >= 2:
+                            break
             except asyncio.TimeoutError:
                 print("\nGeneration timed out, using partial content")
                 if not content_buffer:
