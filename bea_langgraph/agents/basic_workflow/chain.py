@@ -6,7 +6,7 @@ providing a workflow for document generation, review, and revision.
 """
 
 from typing import Dict, Any, List, Tuple, cast, Union
-from langgraph.graph import StateGraph, Graph
+from langgraph_sdk.graph import StateGraph, Graph
 from .models import DocumentState, WorkflowConfig
 from .api.client import VeniceClient
 
