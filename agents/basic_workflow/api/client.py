@@ -67,7 +67,8 @@ class VeniceClient:
                     if line:
                         chunk = line.decode('utf-8').strip()
                         if chunk and chunk != "data: [DONE]":
-                            if processed := handler.process_chunk(chunk):
+                            processed = handler.process_chunk(chunk)
+                            if processed:
                                 yield processed
                             elif not handler._in_think_section and handler.get_think_content():
                                 yield f"__THINK__: {handler.get_think_content()}"
