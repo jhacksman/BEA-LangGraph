@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import List, Optional
 import asyncio
 
-from agents.basic_workflow import DocumentWorkflow, WorkflowConfig, DocumentState
-from agents.basic_workflow.api.client import VeniceClient
+from bea_langgraph.agents.basic_workflow import DocumentWorkflow, WorkflowConfig, DocumentState
+from bea_langgraph.agents.basic_workflow.api.client import VeniceClient
 
 def save_uploadedfile(uploaded_file) -> Optional[Path]:
     """Save uploaded file to temp directory."""
