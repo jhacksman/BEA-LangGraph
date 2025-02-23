@@ -4,7 +4,7 @@ import os
 import asyncio
 import aiohttp
 import json
-from typing import Dict, Any
+from typing import Dict, Any, AsyncGenerator
 
 async def test_api_response():
     """Test Venice.ai API response handling with think tag verification."""
