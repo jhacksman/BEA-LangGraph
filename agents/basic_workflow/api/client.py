@@ -69,7 +69,5 @@ class VeniceClient:
                         if chunk and chunk != "data: [DONE]":
                             if processed := handler.process_chunk(chunk):
                                 yield processed
-                
-                # Yield any remaining think content as metadata
-                if think_content := handler.get_think_content():
-                    yield f"__THINK__: {think_content}"
+                            elif not handler._in_think_section and handler.get_think_content():
+                                yield f"__THINK__: {handler.get_think_content()}"
