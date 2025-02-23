@@ -3,10 +3,12 @@
 import os
 import asyncio
 import json
+import pytest
 from bea_langgraph.agents.basic_workflow.api.client import VeniceClient
 from bea_langgraph.agents.basic_workflow.models import DocumentState, WorkflowConfig
 from bea_langgraph.agents.basic_workflow.chain import DocumentWorkflow
 
+@pytest.mark.asyncio
 async def test_basic_workflow():
     """Test the basic workflow functionality."""
     print("\n=== Testing Basic Workflow ===\n")
