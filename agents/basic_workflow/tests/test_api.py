@@ -53,8 +53,18 @@ async def test_stream_completion(api_client, monkeypatch):
         async def __aexit__(self, exc_type, exc_val, exc_tb):
             pass
     
+    class MockAsyncContextManager:
+        def __init__(self, response):
+            self.response = response
+
+        async def __aenter__(self):
+            return self.response
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
     async def mock_post(*args, **kwargs):
-        return MockResponse()
+        return MockAsyncContextManager(MockResponse())
     
     import aiohttp
     monkeypatch.setattr(aiohttp.ClientSession, "post", mock_post)
