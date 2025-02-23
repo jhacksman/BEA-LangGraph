@@ -42,10 +42,23 @@ async def test_stream_completion(api_client, monkeypatch):
     """Test streaming completion with think tag handling."""
     class MockResponse:
         status = 200
-        async def content(self):
-            yield b'data: {"choices":[{"delta":{"content":"<think>reasoning</think>"}}]}\n'
-            yield b'data: {"choices":[{"delta":{"content":"test content"}}]}\n'
-            yield b'data: [DONE]\n'
+        def __init__(self):
+            self._content = [
+                b'data: {"choices":[{"delta":{"content":"<think>reasoning</think>"}}]}\n',
+                b'data: {"choices":[{"delta":{"content":"test content"}}]}\n',
+                b'data: [DONE]\n'
+            ]
+            self._index = 0
+
+        async def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            if self._index >= len(self._content):
+                raise StopAsyncIteration
+            data = self._content[self._index]
+            self._index += 1
+            return data
         
         async def __aenter__(self):
             return self
