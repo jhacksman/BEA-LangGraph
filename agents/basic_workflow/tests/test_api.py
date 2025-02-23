@@ -51,7 +51,7 @@ async def test_stream_completion(api_client, monkeypatch):
             self._index = 0
             self.content = self
 
-        async def __aiter__(self):
+        def __aiter__(self):
             return self
 
         async def __anext__(self):
