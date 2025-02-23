@@ -1,5 +1,6 @@
 """Test script to verify API response handling and think tag processing."""
 
+import os
 import asyncio
 import aiohttp
 import json
@@ -9,8 +10,10 @@ async def test_api_response():
     """Test Venice.ai API response handling with think tag verification."""
     print("\n=== Testing API Response Handling ===\n")
     
-    api_key = "B9Y68yQgatQw8wmpmnIMYcGip1phCt-43CS0OktZU6"
-    base_url = "https://api.venice.ai/api/v1"
+    api_key = os.getenv("VENICE_API_KEY")
+    if not api_key:
+        raise ValueError("VENICE_API_KEY environment variable not set")
+    base_url = os.getenv("VENICE_API_URL", "https://api.venice.ai/api/v1")
     
     headers = {
         "Authorization": f"Bearer {api_key}",

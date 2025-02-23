@@ -1,5 +1,6 @@
 """Test script for basic workflow functionality."""
 
+import os
 import asyncio
 import json
 from bea_langgraph.agents.basic_workflow.api.client import VeniceClient
@@ -22,7 +23,10 @@ This is a test document for processing through our workflow.
     try:
         # Step 1: Initialize components
         print("1. Initializing components...")
-        client = VeniceClient('B9Y68yQgatQw8wmpmnIMYcGip1phCt-43CS0OktZU6')
+        api_key = os.getenv("VENICE_API_KEY")
+        if not api_key:
+            raise ValueError("VENICE_API_KEY environment variable not set")
+        client = VeniceClient(api_key)
         config = WorkflowConfig(
             criteria=['Clear structure', 'Concise content', 'Easy to understand'],
             max_revisions=1

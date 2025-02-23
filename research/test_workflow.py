@@ -1,11 +1,12 @@
 """Test script to verify document processing workflow functionality."""
 
+import os
+import asyncio
+import aiohttp
+
 from bea_langgraph.agents.basic_workflow.api.client import VeniceClient
 from bea_langgraph.agents.basic_workflow.models import DocumentState, WorkflowConfig
 from bea_langgraph.agents.basic_workflow.chain import DocumentWorkflow
-import asyncio
-
-import aiohttp
 
 async def test_workflow():
     """Test the document processing workflow."""
@@ -14,7 +15,7 @@ async def test_workflow():
         try:
             # Test API with a simple completion request
             headers = {
-                "Authorization": f"Bearer B9Y68yQgatQw8wmpmnIMYcGip1phCt-43CS0OktZU6",
+                "Authorization": f"Bearer {os.getenv('VENICE_API_KEY')}",
                 "Content-Type": "application/json"
             }
             data = {
@@ -58,7 +59,10 @@ Please review and improve this document based on the provided criteria."""
     try:
         # Test 1: API Connection
         print("\n1. Testing API Connection...")
-        client = VeniceClient('B9Y68yQgatQw8wmpmnIMYcGip1phCt-43CS0OktZU6')
+        api_key = os.getenv("VENICE_API_KEY")
+        if not api_key:
+            raise ValueError("VENICE_API_KEY environment variable not set")
+        client = VeniceClient(api_key)
         print("✓ Created Venice client")
         
         # Test 2: Configuration
