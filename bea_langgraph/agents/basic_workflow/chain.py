@@ -65,18 +65,18 @@ class DocumentWorkflow:
         try:
             print("Generating document...")
             content_buffer = []
-            content_buffer = []
             try:
                 async with asyncio.timeout(30):  # Timeout for generation step
                     async for chunk in self.client.stream_completion(messages, timeout=30.0):
+                        if chunk.startswith("<think>"):
+                            print(f"\nThinking: {chunk[7:-8]}")  # Strip <think> tags
+                            continue
                         content_buffer.append(chunk)
                         content = ''.join(content_buffer)
                         print(f"\rGenerating document... ({len(content)} chars)", end="", flush=True)
-                        # Break if we have a complete document
-                        if '# Project Setup' in content and '## Prerequisites' in content:
-                            if '## Installation' in content and '## Configuration' in content:
-                                if len(content) > 200:  # Ensure we have enough content
-                                    break
+                        # Break if we have a complete document with sufficient content
+                        if len(content) > 200 and content.count('\n\n') >= 2:
+                            break
             except asyncio.TimeoutError:
                 print("\nGeneration timed out, using partial content")
                 if not content_buffer:
@@ -101,25 +101,25 @@ class DocumentWorkflow:
         
         try:
             print("\nReviewing document...")
-            feedback = []
+            feedback_buffer = []
             try:
-                content_buffer = []
                 async with asyncio.timeout(30):
                     async for chunk in self.client.stream_completion(messages, timeout=30.0):
-                        content_buffer.append(chunk)
+                        if chunk.startswith("<think>"):
+                            print(f"\nThinking: {chunk[7:-8]}")  # Strip <think> tags
+                            continue
+                        feedback_buffer.append(chunk)
                         print(".", end="", flush=True)
-                        content = ''.join(content_buffer)
-                        # Break if we have a complete revision
-                        if len(content) > 200:  # Minimum content length
-                            if content.count('#') >= 2:  # At least 2 headings
-                                if content.count('\n\n') >= 2:  # At least 2 paragraphs
-                                    break
+                        feedback = ''.join(feedback_buffer)
+                        # Break if we have complete feedback
+                        if len(feedback) > 200 and feedback.count('\n') >= 3:
+                            break
             except Exception as e:
                 print(f"\nError during review: {str(e)}")
                 raise
             
             print("\nDocument review complete")
-            return "".join(feedback)
+            return "".join(feedback_buffer)
         except Exception as e:
             print(f"\nError during document review: {str(e)}")
             raise
@@ -134,12 +134,21 @@ class DocumentWorkflow:
         try:
             print("\nRevising document...")
             revised_content = []
-            async for chunk in self.client.stream_completion(messages, timeout=120.0):
-                if chunk.startswith("__THINK__"):
-                    print(f"Thinking: {chunk[9:]}")
-                else:
-                    revised_content.append(chunk)
-                    print(".", end="", flush=True)
+            try:
+                async with asyncio.timeout(120):
+                    async for chunk in self.client.stream_completion(messages, timeout=120.0):
+                        if chunk.startswith("<think>"):
+                            print(f"\nThinking: {chunk[7:-8]}")  # Strip <think> tags
+                            continue
+                        revised_content.append(chunk)
+                        print(".", end="", flush=True)
+                        content = ''.join(revised_content)
+                        # Break if we have a complete revision
+                        if len(content) > 200 and content.count('\n\n') >= 2:
+                            break
+            except Exception as e:
+                print(f"\nError during revision: {str(e)}")
+                raise
             
             print("\nDocument revision complete")
             doc_state.add_revision("".join(revised_content))
