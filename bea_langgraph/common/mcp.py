@@ -13,6 +13,7 @@ class Tool(BaseModel):
     name: str
     description: str
     parameters: Dict[str, Any] = Field(default_factory=dict)
+    examples: Optional[List[Dict[str, Any]]] = None
     
     class Config:
         validate_assignment = True
@@ -78,3 +79,41 @@ def create_tool_response(tool: str, parameters: Dict[str, Any], result: Optional
         result=result,
         error=error
     )
+
+def document_tool(tool: Tool) -> str:
+    """Generate standardized tool documentation following MCP specification.
+    
+    Args:
+        tool: Tool instance to document
+        
+    Returns:
+        Formatted documentation string
+    """
+    doc = f"""Tool: {tool.name}
+Description: {tool.description}
+
+Parameters:
+{_format_parameters(tool.parameters)}"""
+
+    if tool.examples:
+        doc += "\n\nExamples:\n"
+        for i, example in enumerate(tool.examples, 1):
+            doc += f"\n{i}. Input:\n"
+            doc += _format_parameters(example.get("input", {}))
+            doc += "\n   Output:\n"
+            doc += f"   {example.get('output', '')}\n"
+    
+    return doc
+
+def _format_parameters(params: Dict[str, Any]) -> str:
+    """Format parameters dictionary into readable string.
+    
+    Args:
+        params: Parameters dictionary
+        
+    Returns:
+        Formatted parameter string
+    """
+    if not params:
+        return "  None"
+    return "\n".join(f"  - {name}: {type_}" for name, type_ in params.items())
