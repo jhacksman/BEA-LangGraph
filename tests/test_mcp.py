@@ -120,7 +120,10 @@ def test_think_tag_edge_cases():
 def test_tool_validation():
     """Test tool model validation."""
     with pytest.raises(ValueError):
-        Tool(name="", description="Invalid tool")  # Empty name
+        Tool(name="", description="Invalid tool", parameters={})  # Empty name
+    
+    with pytest.raises(ValueError):
+        Tool(name="test", description="Test", parameters={}, examples=[{}])  # Invalid example
         
     with pytest.raises(ValueError):
         ToolCall(tool="test", parameters=None)  # None parameters
