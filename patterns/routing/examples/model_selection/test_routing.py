@@ -1,5 +1,9 @@
 """Integration tests for model selection routing example."""
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../..")))
+
 import pytest
 from bea_langgraph.agents.routing.router import Router
 from bea_langgraph.agents.routing.models import Route
