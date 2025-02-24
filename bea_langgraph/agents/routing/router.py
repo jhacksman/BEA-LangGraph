@@ -32,23 +32,18 @@ class Router:
         Returns:
             Handler name for the matched route or 'default'
         """
-        text = f" {text.lower()} "  # Add spaces for word boundary checks
+        text = text.lower()
         
-        # Try exact phrase matches first
+        # Try exact matches first
         for route in self.routes.values():
-            for keyword in route.keywords:
-                keyword = keyword.lower()
-                if " " in keyword:  # Multi-word keyword
-                    if keyword in text:
-                        return route.name
-                else:  # Single word with boundaries
-                    if f" {keyword} " in text:
-                        return route.name
+            for keyword in route.all_keywords:
+                if f" {keyword} " in f" {text} ":
+                    return route.name
         
         # Try partial matches as fallback
         for route in self.routes.values():
-            for keyword in route.keywords:
-                if keyword.lower() in text:
+            for keyword in route.all_keywords:
+                if keyword in text:
                     return route.name
         
         return 'default'
