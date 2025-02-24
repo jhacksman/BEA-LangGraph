@@ -63,13 +63,17 @@ class EvaluatorWorkflow:
             
             # Extract score, feedback, and improvements
             score = float([l for l in lines if "Score:" in l][0].split(":")[1].strip())
+            
+            # Add think process to metadata
+            metadata = {"think_process": "Evaluated content against criteria"}
             feedback = [l.strip() for l in lines if "Feedback:" in l]
             improvements = [l.strip() for l in lines if "Improvement:" in l]
             
             return EvaluationResult(
                 score=score,
                 feedback=feedback,
-                improvements=improvements
+                improvements=improvements,
+                metadata=metadata
             )
             
         except Exception as e:

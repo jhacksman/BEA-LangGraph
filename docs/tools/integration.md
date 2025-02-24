@@ -1,152 +1,176 @@
 # Tool Integration Guide
 
-This guide explains how to integrate new tools and customize message formats in BEA-LangGraph.
+This guide explains how to integrate tools and patterns in BEA-LangGraph following Anthropic's research on building effective agents and the Model Context Protocol.
 
-## Adding New Tools
+## Core Principles
 
-1. Define Tool Specification
+1. **Simplicity**
+   - Keep tools focused and minimal
+   - Clear interfaces
+   - Direct implementations
+
+2. **Composability**
+   - Easy pattern integration
+   - Standard formats
+   - Modular design
+
+3. **Reliability**
+   - Consistent error handling
+   - Clear documentation
+   - Thorough testing
+
+## Tool Integration
+
+1. **Define Tool with Examples**
 ```python
 from bea_langgraph.common.mcp import Tool
 
-new_tool = Tool(
-    name="my_tool",
-    description="Tool description",
+calculator = Tool(
+    name="calculator",
+    description="Performs basic calculations",
     parameters={
-        "param1": "string",
-        "param2": "int"
-    }
+        "operation": "string",
+        "numbers": "list[float]"
+    },
+    examples=[{
+        "input": {
+            "operation": "add",
+            "numbers": [1, 2]
+        },
+        "output": "3"
+    }]
 )
 ```
 
-2. Implement Tool Handler
+2. **Implement Handler Following MCP**
 ```python
-async def handle_my_tool(parameters: Dict[str, Any]) -> str:
-    """Handle tool execution."""
-    try:
-        result = # Tool implementation
-        return result
-    except Exception as e:
-        raise Exception(f"Tool execution failed: {str(e)}")
-```
-
-3. Register Tool
-```python
-tools = {
-    "my_tool": handle_my_tool
-}
-```
-
-## Message Format Customization
-
-1. Extend Base Models
-```python
-from bea_langgraph.common.mcp import MCPMessage
-
-class CustomMessage(MCPMessage):
-    """Custom message format."""
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    priority: int = Field(default=0)
-```
-
-2. Custom Think Tag Processing
-```python
-def custom_think_processor(response: str) -> List[str]:
-    """Custom think tag processor."""
-    # Implementation
-    return think_tags
-```
-
-## Testing Tools
-
-1. Unit Tests
-```python
-import pytest
 from bea_langgraph.common.mcp import create_tool_response
 
-@pytest.mark.asyncio
-async def test_my_tool():
-    """Test tool functionality."""
-    result = create_tool_response(
-        tool="my_tool",
-        parameters={"param1": "test", "param2": 42}
-    )
-    assert result.error is None
-    assert result.result == "expected output"
-```
-
-2. Integration Tests
-```python
-@pytest.mark.asyncio
-async def test_tool_workflow():
-    """Test tool in workflow."""
-    workflow = MyWorkflow(tools=[my_tool])
-    result = await workflow.run()
-    assert result.tool_calls
-```
-
-## Error Handling
-
-1. Tool-specific Errors
-```python
-class ToolError(Exception):
-    """Base class for tool errors."""
-    pass
-
-class ValidationError(ToolError):
-    """Validation error in tool parameters."""
-    pass
-```
-
-2. Error Recovery
-```python
-try:
-    result = await tool.execute(parameters)
-except ToolError as e:
-    # Handle tool-specific error
-    error_response = create_tool_response(
-        tool=tool.name,
-        parameters=parameters,
-        error=str(e)
-    )
-except Exception as e:
-    # Handle unexpected errors
-    error_response = create_tool_response(
-        tool=tool.name,
-        parameters=parameters,
-        error=f"Unexpected error: {str(e)}"
-    )
-```
-
-## Monitoring and Logging
-
-1. Tool Metrics
-```python
-async def execute_tool(tool: Tool, parameters: Dict[str, Any]) -> ToolCall:
-    """Execute tool with monitoring."""
-    start_time = time.time()
+async def handle_calculator(parameters: Dict[str, Any]) -> str:
+    """Handle calculation following MCP specification."""
     try:
-        result = await tool.execute(parameters)
-        duration = time.time() - start_time
-        log_tool_metrics(tool.name, duration, success=True)
+        operation = parameters["operation"]
+        numbers = parameters["numbers"]
+        
+        if operation == "add":
+            result = sum(numbers)
+        else:
+            raise ValueError(f"Unsupported operation: {operation}")
+            
         return create_tool_response(
-            tool=tool.name,
+            tool="calculator",
             parameters=parameters,
-            result=result
+            result=str(result)
         )
     except Exception as e:
-        duration = time.time() - start_time
-        log_tool_metrics(tool.name, duration, success=False)
-        raise
+        return create_tool_response(
+            tool="calculator",
+            parameters=parameters,
+            error=str(e)
+        )
 ```
 
-2. Logging Configuration
+3. **Document Tool**
 ```python
-import logging
+from bea_langgraph.common.mcp import document_tool
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-
-logger = logging.getLogger('bea_langgraph.tools')
+# Generate standardized documentation
+docs = document_tool(calculator)
+print(docs)  # Outputs formatted documentation
 ```
+
+## Pattern Integration
+
+1. **Basic Workflow Pattern**
+```python
+from bea_langgraph.agents.basic_workflow.chain import DocumentWorkflow
+
+workflow = DocumentWorkflow(
+    tools=[calculator],
+    config={"think_tags": True}
+)
+result = await workflow.run(input_data)
+```
+
+2. **Routing Pattern**
+```python
+from bea_langgraph.agents.routing.router import Router
+
+router = Router(routes={
+    "math": ["calculate", "sum", "add"],
+    "text": ["format", "edit", "write"]
+})
+```
+
+3. **Parallelization Pattern**
+```python
+from bea_langgraph.agents.parallelization.workflow import ParallelWorkflow
+
+workflow = ParallelWorkflow(tools=[calculator])
+results = await workflow.process_tasks(tasks)
+```
+
+## Testing and Validation
+
+1. **Unit Tests**
+```python
+import pytest
+from bea_langgraph.common.mcp import Tool, create_tool_response
+
+@pytest.mark.asyncio
+async def test_calculator():
+    """Test calculator tool following MCP."""
+    # Test successful case
+    result = await handle_calculator({
+        "operation": "add",
+        "numbers": [1, 2]
+    })
+    assert result.result == "3"
+    assert not result.error
+    
+    # Test error case
+    result = await handle_calculator({
+        "operation": "unknown",
+        "numbers": [1]
+    })
+    assert result.error
+    assert "Unsupported operation" in result.error
+```
+
+2. **Pattern Integration Tests**
+```python
+@pytest.mark.asyncio
+async def test_workflow_integration():
+    """Test tool in workflow patterns."""
+    # Test basic workflow
+    workflow = DocumentWorkflow(tools=[calculator])
+    result = await workflow.run({"content": "Calculate 1 + 2"})
+    assert "3" in result["document"].content
+    
+    # Test routing
+    router = Router(routes={"math": ["calculate", "add"]})
+    route = await router.route("Calculate 1 + 2")
+    assert route == "math"
+```
+
+## Best Practices
+
+1. **Tool Design**
+   - Follow single responsibility principle
+   - Provide clear examples
+   - Document thoroughly
+   - Handle errors gracefully
+
+2. **Pattern Integration**
+   - Use appropriate patterns
+   - Keep implementations simple
+   - Test interactions
+   - Document combinations
+
+3. **Error Management**
+   - Use MCP error format
+   - Provide clear messages
+   - Handle edge cases
+   - Log appropriately
+
+See [best_practices.md](best_practices.md) for more details.

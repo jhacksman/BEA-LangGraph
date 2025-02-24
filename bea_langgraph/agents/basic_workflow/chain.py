@@ -14,9 +14,9 @@ from .api.client import VeniceClient
 class DocumentWorkflow:
     """Implementation of document processing workflow."""
     
-    def __init__(self, config: WorkflowConfig, client: VeniceClient):
+    def __init__(self, config: WorkflowConfig = None, client: VeniceClient = None):
         """Initialize the workflow with configuration and API client."""
-        self.config = config
+        self.config = config or WorkflowConfig(criteria=["clarity", "completeness"])
         self.client = client
         
     async def run(self, inputs: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -28,7 +28,7 @@ class DocumentWorkflow:
         
         try:
             print("\nStep 1: Document Generation")
-            doc_state = cast(DocumentState, state["document"])
+            doc_state = DocumentState(**state["document"]) if isinstance(state["document"], dict) else state["document"]
             messages = state.get('messages', [
                 {"role": "system", "content": "You are a document generation assistant. Generate a clear, structured document based on the provided criteria."},
                 {"role": "user", "content": f"Generate a document following these criteria: {', '.join(self.config.criteria)}"}

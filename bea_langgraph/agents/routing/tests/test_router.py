@@ -1,85 +1,65 @@
 """Tests for router implementation."""
 
 import pytest
-from ..models import Route, RouterConfig, RoutingState
 from ..router import Router
-from ...basic_workflow.api.client import VeniceClient
 
 @pytest.mark.asyncio
 async def test_router_initialization():
     """Test router initialization."""
-    route = Route(
-        name="test_route",
-        description="Test route",
-        criteria=["test1", "test2"],
-        handler="test_handler"
-    )
-    config = RouterConfig(
-        routes=[route],
-        default_handler="default_handler"
-    )
-    client = VeniceClient(api_key="test_key")
-    router = Router(config, client)
-    assert router.config == config
-    assert router.client == client
+    routes = {
+        "tech_support": ["error", "bug", "not working"],
+        "billing": ["payment", "charge", "refund"]
+    }
+    router = Router(routes=routes)
+    assert router.raw_routes == routes
 
 @pytest.mark.asyncio
-async def test_routing_logic():
-    """Test routing logic with mock API client."""
-    route = Route(
-        name="test_route",
-        description="Test route",
-        criteria=["test1", "test2"],
-        handler="test_handler"
-    )
-    config = RouterConfig(
-        routes=[route],
-        default_handler="default_handler",
-        confidence_threshold=0.7
-    )
-    client = VeniceClient(api_key="test_key")
-    router = Router(config, client)
-    
-    state = {
-        "routing": RoutingState(input="test input that matches test1 criteria")
+async def test_route_matching():
+    """Test route matching logic."""
+    routes = {
+        "tech_support": ["error", "bug"]
     }
+    router = Router(routes=routes)
     
-    try:
-        result = await router.route(state)
-        assert "routing" in result
-        routing_state = result["routing"]
-        assert routing_state.attempts >= 1
-        assert routing_state.selected_route is not None
-    except Exception as e:
-        pytest.fail(f"Routing failed: {str(e)}")
+    # Test matching route
+    result = await router.route("I found a bug in the system")
+    assert result == "tech_support"
+    
+    # Test default route
+    result = await router.route("General question about service")
+    assert result == "default"
 
 @pytest.mark.asyncio
-async def test_fallback_to_default():
-    """Test fallback to default handler when confidence is low."""
-    route = Route(
-        name="test_route",
-        description="Test route",
-        criteria=["test1", "test2"],
-        handler="test_handler"
-    )
-    config = RouterConfig(
-        routes=[route],
-        default_handler="default_handler",
-        confidence_threshold=0.9,
-        max_retries=1
-    )
-    client = VeniceClient(api_key="test_key")
-    router = Router(config, client)
-    
-    state = {
-        "routing": RoutingState(input="completely unrelated input")
+async def test_multiple_routes():
+    """Test multiple route handling."""
+    routes = {
+        "tech_support": ["error", "bug"],
+        "billing": ["payment", "charge"]
     }
+    router = Router(routes=routes)
     
-    try:
-        result = await router.route(state)
-        assert "routing" in result
-        routing_state = result["routing"]
-        assert routing_state.selected_route == "default_handler"
-        assert routing_state.attempts > 0
-    except Exception as e:
-        pytest.fail(f"Fallback routing failed: {str(e)}")
+    # Test first route
+    result = await router.route("System error occurred")
+    assert result == "tech_support"
+    
+    # Test second route
+    result = await router.route("Payment issue")
+    assert result == "billing"
+    
+    # Test default
+    result = await router.route("General inquiry")
+    assert result == "default"
+
+@pytest.mark.asyncio
+async def test_case_insensitive():
+    """Test case-insensitive matching."""
+    routes = {
+        "tech_support": ["ERROR", "Bug"]
+    }
+    router = Router(routes=routes)
+    
+    result = await router.route("error found")
+    assert result == "tech_support"
+    
+    result = await router.route("found a BUG")
+    assert result == "tech_support"

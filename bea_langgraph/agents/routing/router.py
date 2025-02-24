@@ -1,25 +1,76 @@
 """Router implementation following Anthropic's routing workflow pattern."""
 
-from typing import List
-from .models import Route, RouterConfig
+from typing import List, Dict
+from .models import Route
 
 class Router:
-    """Simple router that classifies input and directs to specialized handlers."""
+    """Simple router that classifies input based on keywords."""
     
-    def __init__(self, routes: List[Route], default_handler: str):
-        """Initialize router with routes and default handler."""
-        self.routes = routes
-        self.default_handler = default_handler
+    def __init__(self, routes: Dict[str, List[str]]):
+        """Initialize router with route definitions.
         
-    async def route(self, input_text: str) -> str:
-        """Route input to appropriate handler based on classification."""
-        # Simple classification and routing
-        for route in self.routes:
-            if self._matches_criteria(input_text, route.criteria):
-                return route.handler
-        return self.default_handler
+        Args:
+            routes: Dictionary mapping handler names to their keywords
+        """
+        self._raw_routes = routes
+        self.routes = {
+            name: Route(name=name, keywords=keywords, handler=name)
+            for name, keywords in routes.items()
+        }
         
-    def _matches_criteria(self, input_text: str, criteria: List[str]) -> bool:
-        """Check if input matches route criteria."""
-        input_lower = input_text.lower()
-        return any(keyword.lower() in input_lower for keyword in criteria)
+    @property
+    def raw_routes(self) -> Dict[str, List[str]]:
+        """Get raw route definitions for testing."""
+        return self._raw_routes
+        
+    async def route(self, text: str) -> str:
+        """Route text to appropriate handler based on keywords.
+        
+        Args:
+            text: Input text to classify
+            
+        Returns:
+            Handler name for the matched route or 'default'
+        """
+        # Check for general queries first
+        general_terms = ["general", "hello", "hi", "help", "question", "inquiry", "feedback"]
+        if any(term in text.lower() for term in general_terms):
+            return "default"
+            
+        text = text.lower()
+        words = text.split()
+        matches = {}
+        
+        for route in self.routes.values():
+            score = 0
+            for keyword in route.all_keywords:
+                keyword = keyword.lower()
+                keyword_parts = keyword.split()
+                
+                # Check for exact phrase matches
+                if len(keyword_parts) > 1 and keyword in text:
+                    score += 4
+                    continue
+                
+                # Check for exact word matches
+                for kw_part in keyword_parts:
+                    if kw_part in words:
+                        score += 3
+                    # Check for word boundary matches at start/end
+                    elif any(w.startswith(kw_part + " ") or w.endswith(" " + kw_part) for w in words):
+                        score += 2
+                    # Check for exact word match (case insensitive)
+                    elif kw_part.lower() in [w.lower() for w in words]:
+                        score += 2
+                    # Avoid substring matches for single-word keywords
+                    elif len(keyword_parts) > 1 and any(kw_part in w for w in words):
+                        score += 1
+            
+            if score > 0:
+                matches[route.name] = matches.get(route.name, 0) + score
+        
+        if matches:
+            # Return route with highest score
+            return max(matches.items(), key=lambda x: x[1])[0]
+        
+        return 'default'

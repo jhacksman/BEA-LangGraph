@@ -13,25 +13,28 @@ from ..basic_workflow.api.client import VeniceClient
 class ParallelWorkflow:
     """Implementation of parallel processing workflow."""
     
-    def __init__(self, config: ParallelConfig, client: VeniceClient):
+    def __init__(self, config: ParallelConfig = None, client: VeniceClient = None):
         """Initialize workflow with configuration and API client."""
-        self.config = config
+        self.config = config or ParallelConfig()
         self.client = client
         
-    async def process_tasks(self, tasks: List[ParallelTask]) -> ParallelResult:
+    async def process_tasks(self, tasks: List[Dict[str, Any]]) -> ParallelResult:
         """Process multiple tasks in parallel."""
         try:
+            # Convert dict tasks to ParallelTask objects
+            parallel_tasks = [ParallelTask(**task) for task in tasks]
+            
             # Process tasks concurrently with semaphore for control
             sem = asyncio.Semaphore(self.config.max_concurrent_tasks)
             async with sem:
                 results = await asyncio.gather(
-                    *[self._process_task(task) for task in tasks],
+                    *[self._process_task(task) for task in parallel_tasks],
                     return_exceptions=True
                 )
             
             # Handle results and exceptions
             processed_tasks = []
-            for task, result in zip(tasks, results):
+            for task, result in zip(parallel_tasks, results):
                 if isinstance(result, Exception):
                     print(f"Error processing task {task.task_id}: {str(result)}")
                     task.result = f"Error: {str(result)}"

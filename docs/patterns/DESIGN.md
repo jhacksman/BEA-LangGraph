@@ -1,6 +1,6 @@
 # Agent Patterns Design Guide
 
-This document outlines the design decisions and architectural considerations for each pattern in BEA-LangGraph.
+This document outlines the design decisions and architectural considerations for each pattern in BEA-LangGraph, following Anthropic's research on building effective agents.
 
 ## Design Principles
 
@@ -8,16 +8,70 @@ This document outlines the design decisions and architectural considerations for
    - Keep patterns simple and focused
    - Avoid unnecessary complexity
    - Follow Anthropic's guidance
+   - Prefer direct solutions
 
 2. **Composability**
    - Design for pattern combination
    - Clear interfaces
    - Standard message formats
+   - Modular components
 
 3. **Error Management**
    - Graceful degradation
    - Clear error states
    - Recovery mechanisms
+   - Predictable behavior
+
+## Pattern Comparison
+
+### When to Use Each Pattern
+
+1. **Basic Workflow Pattern**
+   - Best for: Sequential tasks with clear steps
+   - Avoid when: Tasks require dynamic routing or parallel processing
+   - Example: Document generation and review
+   - Key benefit: Simple to understand and implement
+
+2. **Routing Pattern**
+   - Best for: Input classification and specialized handling
+   - Avoid when: All inputs need similar processing
+   - Example: Customer service query routing
+   - Key benefit: Clear separation of concerns
+
+3. **Parallelization Pattern**
+   - Best for: Independent subtasks
+   - Avoid when: Tasks have dependencies
+   - Example: Batch document processing
+   - Key benefit: Improved performance
+
+4. **Orchestrator-Workers Pattern**
+   - Best for: Complex task decomposition
+   - Avoid when: Tasks are simple or linear
+   - Example: Research analysis
+   - Key benefit: Flexible task management
+
+5. **Evaluator-Optimizer Pattern**
+   - Best for: Quality improvement tasks
+   - Avoid when: Single-pass processing is sufficient
+   - Example: Content optimization
+   - Key benefit: Iterative refinement
+
+### Pattern Combinations
+
+1. **Basic + Routing**
+   - Use case: Multi-type document processing
+   - Example: Route documents to specialized workflows
+   - Benefits: Specialized handling with simple flows
+
+2. **Routing + Parallelization**
+   - Use case: High-volume query processing
+   - Example: Customer service system
+   - Benefits: Efficient handling of multiple queries
+
+3. **Orchestrator + Evaluator**
+   - Use case: Complex content generation
+   - Example: Research paper writing
+   - Benefits: Quality control in complex tasks
 
 ## Pattern Architecture
 
