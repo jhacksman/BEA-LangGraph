@@ -9,10 +9,10 @@ class CustomerServiceRouter(Router):
     def __init__(self):
         """Initialize with predefined customer service routes."""
         routes = {
-            "technical": ["error", "bug", "not working", "broken", "failed", "issue", "problem"],
-            "billing": ["charge", "payment", "refund", "invoice", "subscription", "bill", "money", "cost", "price"],
-            "account": ["login", "password", "access", "account", "profile", "sign in", "register"],
-            "product": ["feature", "how to", "usage", "documentation", "help", "guide", "tutorial"]
+            "billing": ["charge", "payment", "refund", "invoice", "subscription", "bill", "money", "cost", "price", "pay", "paid", "billing"],
+            "technical": ["error", "bug", "not working", "broken", "failed", "issue", "problem", "crash", "fix", "technical"],
+            "account": ["login", "password", "access", "account", "profile", "sign in", "register", "credentials"],
+            "product": ["feature", "how to", "usage", "documentation", "help", "guide", "tutorial", "learn"]
         }
         super().__init__(routes=routes)
     

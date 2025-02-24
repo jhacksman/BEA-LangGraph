@@ -32,18 +32,19 @@ class Router:
         Returns:
             Handler name for the matched route or 'default'
         """
-        text = text.lower()
+        text = f" {text.lower()} "
+        matches = {}
         
         # Try exact matches first
         for route in self.routes.values():
             for keyword in route.all_keywords:
-                if f" {keyword} " in f" {text} ":
-                    return route.name
+                if f" {keyword} " in text:
+                    matches[route.name] = matches.get(route.name, 0) + 2
+                elif keyword in text:
+                    matches[route.name] = matches.get(route.name, 0) + 1
         
-        # Try partial matches as fallback
-        for route in self.routes.values():
-            for keyword in route.all_keywords:
-                if keyword in text:
-                    return route.name
+        if matches:
+            # Return route with most matches
+            return max(matches.items(), key=lambda x: x[1])[0]
         
         return 'default'

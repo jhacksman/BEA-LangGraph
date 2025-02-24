@@ -9,11 +9,11 @@ class CodeReviewRouter(Router):
     def __init__(self):
         """Initialize with predefined code review routes."""
         routes = {
-            "security": ["password", "encrypt", "auth", "token", "secret", "credentials", "sensitive"],
-            "performance": ["loop", "memory", "cpu", "optimize", "cache", "performance", "slow", "fast", "efficient"],
-            "style": ["format", "lint", "style", "naming", "convention", "pep8", "clean"],
-            "testing": ["test", "assert", "mock", "coverage", "fixture", "pytest", "unittest"],
-            "architecture": ["pattern", "design", "interface", "dependency", "coupling", "solid", "clean"]
+            "performance": ["loop", "memory", "cpu", "optimize", "cache", "performance", "slow", "fast", "efficient", "speed", "benchmark", "profiling"],
+            "security": ["password", "encrypt", "auth", "token", "secret", "credentials", "sensitive", "security", "vulnerability"],
+            "style": ["format", "lint", "style", "naming", "convention", "pep8", "clean", "readability", "formatting"],
+            "testing": ["test", "assert", "mock", "coverage", "fixture", "pytest", "unittest", "testing", "verify"],
+            "architecture": ["pattern", "design", "interface", "dependency", "coupling", "solid", "clean", "architecture", "structure"]
         }
         super().__init__(routes=routes)
     

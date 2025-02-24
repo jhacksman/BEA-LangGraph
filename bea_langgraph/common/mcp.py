@@ -10,10 +10,18 @@ from pydantic import BaseModel, Field
 
 class Tool(BaseModel):
     """Model for tool specification."""
-    name: str
-    description: str
+    name: str = Field(..., min_length=1)
+    description: str = Field(..., min_length=1)
     parameters: Dict[str, Any] = Field(default_factory=dict)
-    examples: Optional[List[Dict[str, Any]]] = None
+    examples: Optional[List[Dict[str, Any]]] = Field(default=None)
+    
+    @property
+    def has_examples(self) -> bool:
+        """Check if tool has valid examples."""
+        return bool(self.examples and all(
+            isinstance(ex, dict) and 'input' in ex and 'output' in ex
+            for ex in self.examples
+        ))
     
     class Config:
         validate_assignment = True
