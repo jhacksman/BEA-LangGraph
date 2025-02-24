@@ -1,7 +1,7 @@
 """Customer service routing example following Anthropic's pattern."""
 
 from typing import Dict, List
-from ...router import Router
+from bea_langgraph.agents.routing.router import Router
 
 class CustomerServiceRouter(Router):
     """Simple router for customer service queries."""
@@ -9,10 +9,10 @@ class CustomerServiceRouter(Router):
     def __init__(self):
         """Initialize with predefined customer service routes."""
         routes = {
-            "technical": ["error", "bug", "not working", "broken", "failed"],
-            "billing": ["charge", "payment", "refund", "invoice", "subscription"],
-            "account": ["login", "password", "access", "account", "profile"],
-            "product": ["feature", "how to", "usage", "documentation", "help"]
+            "technical": ["error", "bug", "not working", "broken", "failed", "issue", "problem"],
+            "billing": ["charge", "payment", "refund", "invoice", "subscription", "bill", "money", "cost", "price"],
+            "account": ["login", "password", "access", "account", "profile", "sign in", "register"],
+            "product": ["feature", "how to", "usage", "documentation", "help", "guide", "tutorial"]
         }
         super().__init__(routes=routes)
     

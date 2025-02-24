@@ -12,7 +12,10 @@ class Router:
         Args:
             routes: Dictionary mapping handler names to their keywords
         """
-        self.routes = routes
+        self.routes = {
+            name: Route(name=name, keywords=keywords, handler=name)
+            for name, keywords in routes.items()
+        }
         
     async def route(self, text: str) -> str:
         """Route text to appropriate handler based on keywords.
@@ -23,8 +26,23 @@ class Router:
         Returns:
             Handler name for the matched route or 'default'
         """
-        text = text.lower()
-        for handler, keywords in self.routes.items():
-            if any(kw.lower() in text for kw in keywords):
-                return handler
+        text = f" {text.lower()} "  # Add spaces for word boundary checks
+        
+        # Try exact phrase matches first
+        for route in self.routes.values():
+            for keyword in route.keywords:
+                keyword = keyword.lower()
+                if " " in keyword:  # Multi-word keyword
+                    if keyword in text:
+                        return route.name
+                else:  # Single word with boundaries
+                    if f" {keyword} " in text:
+                        return route.name
+        
+        # Try partial matches as fallback
+        for route in self.routes.values():
+            for keyword in route.keywords:
+                if keyword.lower() in text:
+                    return route.name
+        
         return 'default'

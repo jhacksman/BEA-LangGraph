@@ -1,7 +1,7 @@
 """Code review routing example following Anthropic's pattern."""
 
 from typing import Dict, List
-from ...router import Router
+from bea_langgraph.agents.routing.router import Router
 
 class CodeReviewRouter(Router):
     """Simple router for code review tasks."""
@@ -9,11 +9,11 @@ class CodeReviewRouter(Router):
     def __init__(self):
         """Initialize with predefined code review routes."""
         routes = {
-            "security": ["password", "encrypt", "auth", "token", "secret"],
-            "performance": ["loop", "memory", "cpu", "optimize", "cache"],
-            "style": ["format", "lint", "style", "naming", "convention"],
-            "testing": ["test", "assert", "mock", "coverage", "fixture"],
-            "architecture": ["pattern", "design", "interface", "dependency", "coupling"]
+            "security": ["password", "encrypt", "auth", "token", "secret", "credentials", "sensitive"],
+            "performance": ["loop", "memory", "cpu", "optimize", "cache", "performance", "slow", "fast", "efficient"],
+            "style": ["format", "lint", "style", "naming", "convention", "pep8", "clean"],
+            "testing": ["test", "assert", "mock", "coverage", "fixture", "pytest", "unittest"],
+            "architecture": ["pattern", "design", "interface", "dependency", "coupling", "solid", "clean"]
         }
         super().__init__(routes=routes)
     
