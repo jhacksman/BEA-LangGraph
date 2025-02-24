@@ -32,24 +32,37 @@ class Router:
         Returns:
             Handler name for the matched route or 'default'
         """
-        text = f" {text.lower()} "
+        text = text.lower()
+        words = text.split()
         matches = {}
         
-        # Try exact matches first
         for route in self.routes.values():
+            score = 0
             for keyword in route.all_keywords:
-                # Check for exact word/phrase matches
-                if f" {keyword} " in text:
-                    matches[route.name] = matches.get(route.name, 0) + 3
-                # Check for partial matches at word boundaries
-                elif any(f" {keyword}" in text or f"{keyword} " in text):
-                    matches[route.name] = matches.get(route.name, 0) + 2
-                # Check for any occurrence as fallback
-                elif keyword in text:
-                    matches[route.name] = matches.get(route.name, 0) + 1
+                keyword = keyword.lower()
+                keyword_parts = keyword.split()
+                
+                # Check for exact phrase matches
+                if len(keyword_parts) > 1 and keyword in text:
+                    score += 4
+                    continue
+                
+                # Check for exact word matches
+                for kw_part in keyword_parts:
+                    if kw_part in words:
+                        score += 3
+                    # Check for word boundary matches
+                    elif any(w.startswith(kw_part + " ") or w.endswith(" " + kw_part) or w == kw_part for w in words):
+                        score += 2
+                    # Check for substring matches
+                    elif any(kw_part in w for w in words):
+                        score += 1
+            
+            if score > 0:
+                matches[route.name] = matches.get(route.name, 0) + score
         
         if matches:
-            # Return route with most matches
+            # Return route with highest score
             return max(matches.items(), key=lambda x: x[1])[0]
         
         return 'default'

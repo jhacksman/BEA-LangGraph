@@ -13,7 +13,12 @@ from bea_langgraph.common.mcp import MCPMessage, Tool
 @pytest.mark.asyncio
 async def test_pattern_integration():
     """Test integration between different patterns."""
-    client = VeniceClient(api_key="test_key")
+    # Mock API client for testing
+    class MockVeniceClient:
+        async def stream_completion(self, messages, **kwargs):
+            yield "Test response"
+    
+    client = MockVeniceClient()
     
     # Test document workflow with parallelization
     doc_workflow = DocumentWorkflow(config=None, client=client)
@@ -110,7 +115,12 @@ async def test_routing_patterns():
 @pytest.mark.asyncio
 async def test_mcp_integration():
     """Test MCP integration across patterns."""
-    client = VeniceClient(api_key="test_key")
+    # Mock API client for testing
+    class MockVeniceClient:
+        async def stream_completion(self, messages, **kwargs):
+            yield "Test response"
+    
+    client = MockVeniceClient()
     
     # Define test tool
     tool = Tool(
@@ -149,7 +159,12 @@ async def test_mcp_integration():
 @pytest.mark.asyncio
 async def test_error_handling():
     """Test error handling across patterns."""
-    client = VeniceClient(api_key="test_key")
+    # Mock API client for testing
+    class MockVeniceClient:
+        async def stream_completion(self, messages, **kwargs):
+            yield "Test response"
+    
+    client = MockVeniceClient()
     
     # Test parallel processing errors
     parallel_workflow = ParallelWorkflow(config=None, client=client)
