@@ -51,11 +51,14 @@ class Router:
                 for kw_part in keyword_parts:
                     if kw_part in words:
                         score += 3
-                    # Check for word boundary matches
-                    elif any(w.startswith(kw_part + " ") or w.endswith(" " + kw_part) or w == kw_part for w in words):
+                    # Check for word boundary matches at start/end
+                    elif any(w.startswith(kw_part + " ") or w.endswith(" " + kw_part) for w in words):
                         score += 2
-                    # Check for substring matches
-                    elif any(kw_part in w for w in words):
+                    # Check for exact word match (case insensitive)
+                    elif kw_part.lower() in [w.lower() for w in words]:
+                        score += 2
+                    # Avoid substring matches for single-word keywords
+                    elif len(keyword_parts) > 1 and any(kw_part in w for w in words):
                         score += 1
             
             if score > 0:
