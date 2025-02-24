@@ -157,7 +157,11 @@ async def test_mcp_integration():
     assert doc_state["document"].content
     
     # Test with evaluator
-    evaluator = EvaluatorWorkflow(config=None, client=client)
+    from bea_langgraph.agents.evaluator.models import EvaluatorConfig
+    evaluator = EvaluatorWorkflow(
+        config=EvaluatorConfig(timeout_per_evaluation=30.0),
+        client=client
+    )
     content, evaluation = await evaluator.evaluate_and_improve(
         doc_state["document"].content,
         criteria=["clarity"]

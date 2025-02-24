@@ -14,13 +14,13 @@ async def test_routing_client():
             self.base_url = "https://api.venice.ai/api/v1"
             self.headers = {"Authorization": f"Bearer test_key"}
             
-        async def get_route_analysis(self, input_text: str, routes_desc: str) -> str:
+        async def get_route_analysis(self, input_text: str, routes_desc: str):
             if "technical" in input_text.lower():
-                return "Route: technical_review\nReasoning: Contains technical terms."
+                yield "<think>Analyzing technical aspects</think>\nRoute: technical_review\nReasoning: Contains technical terms."
             elif "billing" in input_text.lower():
-                return "Route: billing\nReasoning: Payment related query."
+                yield "<think>Analyzing payment terms</think>\nRoute: billing\nReasoning: Payment related query."
             else:
-                return "Route: general\nReasoning: General inquiry."
+                yield "<think>No specific terms found</think>\nRoute: general\nReasoning: General inquiry."
             
         async def stream_completion(self, messages, **kwargs):
             yield "Test response"

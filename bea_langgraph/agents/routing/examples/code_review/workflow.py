@@ -9,11 +9,11 @@ class CodeReviewRouter(Router):
     def __init__(self):
         """Initialize with predefined code review routes."""
         routes = {
-            "performance": ["loop", "memory", "cpu", "optimize", "cache", "performance", "slow", "fast", "efficient", "speed", "benchmark", "profiling"],
-            "security": ["password", "encrypt", "auth", "token", "secret", "credentials", "sensitive", "security", "vulnerability"],
-            "style": ["format", "lint", "style", "naming", "convention", "pep8", "clean", "readability", "formatting"],
-            "testing": ["test", "assert", "mock", "coverage", "fixture", "pytest", "unittest", "testing", "verify"],
-            "architecture": ["pattern", "design", "interface", "dependency", "coupling", "solid", "clean", "architecture", "structure"]
+            "performance": ["loop", "range", "memory", "cpu", "optimize", "cache", "performance", "slow", "fast", "efficient", "speed", "benchmark", "profiling", "process", "intensive"],
+            "security": ["password", "encrypt", "auth", "token", "secret", "credentials", "sensitive", "security", "vulnerability", "validate", "getenv", "api_key"],
+            "style": ["format", "lint", "style", "naming", "convention", "pep8", "clean", "readability", "formatting", "badly", "todo", "following"],
+            "testing": ["test", "assert", "mock", "coverage", "fixture", "pytest", "unittest", "testing", "verify", "login", "database"],
+            "architecture": ["abstract", "factory", "interface", "dependency", "injection", "coupling", "solid", "clean", "architecture", "structure", "repository", "container"]
         }
         super().__init__(routes=routes)
     
@@ -26,5 +26,29 @@ class CodeReviewRouter(Router):
         Returns:
             Specialist category for the review
         """
+        # Check each category's keywords more thoroughly
+        code_lower = code.lower()
+        
+        # Security checks
+        if any(kw in code_lower for kw in ["password", "encrypt", "auth", "token", "secret", "credentials", "api_key"]):
+            return "security"
+            
+        # Performance checks
+        if any(kw in code_lower for kw in ["loop", "range", "memory", "cpu", "cache", "performance", "process"]):
+            return "performance"
+            
+        # Style checks
+        if any(kw in code_lower for kw in ["format", "lint", "style", "convention", "pep8", "todo"]):
+            return "style"
+            
+        # Testing checks
+        if any(kw in code_lower for kw in ["test", "assert", "mock", "fixture", "pytest"]):
+            return "testing"
+            
+        # Architecture checks
+        if any(kw in code_lower for kw in ["abstract", "factory", "interface", "dependency", "injection", "repository", "class"]):
+            return "architecture"
+            
+        # Fallback to router
         category = await self.route(code)
         return category if category != "default" else "general"

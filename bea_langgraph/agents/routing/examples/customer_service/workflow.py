@@ -25,5 +25,15 @@ class CustomerServiceRouter(Router):
         Returns:
             Department name for handling the query
         """
+        # Check for product queries first
+        product_terms = ["how to", "feature", "usage", "documentation", "help", "guide", "tutorial", "learn"]
+        if any(term in query.lower() for term in product_terms):
+            return "product"
+            
+        # Check for general queries
+        general_terms = ["general", "hello", "hi", "question", "inquiry", "feedback"]
+        if any(term in query.lower() for term in general_terms):
+            return "general"
+            
         department = await self.route(query)
         return department if department != "default" else "general"
