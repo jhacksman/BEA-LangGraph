@@ -3,7 +3,7 @@
 import pytest
 from bea_langgraph.common.mcp import (
     Tool, ToolCall, MCPMessage, MCPResponse,
-    process_think_tags, create_tool_response
+    process_think_tags, create_tool_response, document_tool
 )
 
 def test_tool_model():
@@ -11,10 +11,15 @@ def test_tool_model():
     tool = Tool(
         name="test_tool",
         description="Test tool",
-        parameters={"param1": "string"}
+        parameters={"param1": "string"},
+        examples=[{
+            "input": {"param1": "test"},
+            "output": "success"
+        }]
     )
     assert tool.name == "test_tool"
     assert tool.parameters == {"param1": "string"}
+    assert len(tool.examples) == 1
 
 def test_tool_call_model():
     """Test ToolCall model validation."""
@@ -119,3 +124,69 @@ def test_tool_validation():
         
     with pytest.raises(ValueError):
         ToolCall(tool="test", parameters=None)  # None parameters
+
+def test_tool_documentation():
+    """Test tool documentation generation."""
+    # Test basic tool documentation
+    tool = Tool(
+        name="calculator",
+        description="Performs basic calculations",
+        parameters={
+            "operation": "string",
+            "numbers": "list[float]"
+        }
+    )
+    doc = document_tool(tool)
+    assert "Tool: calculator" in doc
+    assert "Performs basic calculations" in doc
+    assert "operation: string" in doc
+    assert "numbers: list[float]" in doc
+    
+    # Test tool documentation with examples
+    tool_with_examples = Tool(
+        name="calculator",
+        description="Performs basic calculations",
+        parameters={
+            "operation": "string",
+            "numbers": "list[float]"
+        },
+        examples=[
+            {
+                "input": {
+                    "operation": "add",
+                    "numbers": [1.0, 2.0]
+                },
+                "output": "3.0"
+            }
+        ]
+    )
+    doc = document_tool(tool_with_examples)
+    assert "Examples:" in doc
+    assert "Input:" in doc
+    assert "operation: add" in doc
+    assert "Output:" in doc
+    assert "3.0" in doc
+
+def test_tool_documentation_edge_cases():
+    """Test tool documentation edge cases."""
+    # Empty parameters
+    tool = Tool(
+        name="test",
+        description="Test tool",
+        parameters={}
+    )
+    doc = document_tool(tool)
+    assert "Parameters:\n  None" in doc
+    
+    # No examples
+    assert "Examples:" not in doc
+    
+    # Empty examples list
+    tool = Tool(
+        name="test",
+        description="Test tool",
+        parameters={},
+        examples=[]
+    )
+    doc = document_tool(tool)
+    assert "Examples:" not in doc
