@@ -5,11 +5,29 @@ This module provides utilities for processing think tags in streaming responses
 from the venice.ai API.
 """
 
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator, Optional, List
 import json
 import re
 
-class ThinkTagHandler:
+class ResponseHandler:
+    """Base class for API response handlers."""
+    
+    def __init__(self):
+        """Initialize the handler."""
+        self._buffer = []
+        
+    def process_chunk(self, chunk: str) -> Optional[str]:
+        """Process a response chunk."""
+        try:
+            content = chunk.strip()
+            if not content:
+                return None
+            return content
+        except Exception as e:
+            print(f"Error processing chunk: {str(e)}")
+            return None
+
+class ThinkTagHandler(ResponseHandler):
     """Handler for processing think tags in API responses."""
     
     def __init__(self):
