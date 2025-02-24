@@ -12,10 +12,16 @@ class Router:
         Args:
             routes: Dictionary mapping handler names to their keywords
         """
+        self._raw_routes = routes
         self.routes = {
             name: Route(name=name, keywords=keywords, handler=name)
             for name, keywords in routes.items()
         }
+        
+    @property
+    def raw_routes(self) -> Dict[str, List[str]]:
+        """Get raw route definitions for testing."""
+        return self._raw_routes
         
     async def route(self, text: str) -> str:
         """Route text to appropriate handler based on keywords.

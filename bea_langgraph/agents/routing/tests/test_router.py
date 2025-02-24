@@ -11,7 +11,7 @@ async def test_router_initialization():
         "billing": ["payment", "charge", "refund"]
     }
     router = Router(routes=routes)
-    assert router.routes == routes
+    assert router.raw_routes == routes
 
 @pytest.mark.asyncio
 async def test_route_matching():
