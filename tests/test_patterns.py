@@ -16,7 +16,10 @@ async def test_pattern_integration():
     # Mock API client for testing
     class MockVeniceClient:
         async def stream_completion(self, messages, **kwargs):
-            yield "Test response"
+            if "evaluate" in str(messages).lower():
+                yield "Score: 0.8\nFeedback: Good clarity\nImprovements: None needed"
+            else:
+                yield "Test response"
     
     client = MockVeniceClient()
     
@@ -127,7 +130,10 @@ async def test_mcp_integration():
     # Mock API client for testing
     class MockVeniceClient:
         async def stream_completion(self, messages, **kwargs):
-            yield "Test response"
+            if "evaluate" in str(messages).lower():
+                yield "Score: 0.8\nFeedback: Good clarity\nImprovements: None needed"
+            else:
+                yield "Test response"
     
     client = MockVeniceClient()
     
@@ -175,7 +181,10 @@ async def test_error_handling():
     # Mock API client for testing
     class MockVeniceClient:
         async def stream_completion(self, messages, **kwargs):
-            yield "Test response"
+            if "evaluate" in str(messages).lower():
+                yield "Score: 0.8\nFeedback: Good clarity\nImprovements: None needed"
+            else:
+                yield "Test response"
     
     client = MockVeniceClient()
     

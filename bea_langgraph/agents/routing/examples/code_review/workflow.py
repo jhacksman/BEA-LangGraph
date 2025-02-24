@@ -45,8 +45,13 @@ class CodeReviewRouter(Router):
         if any(kw in code_lower for kw in ["test", "assert", "mock", "fixture", "pytest"]):
             return "testing"
             
-        # Architecture checks
-        if any(kw in code_lower for kw in ["abstract", "factory", "interface", "dependency", "injection", "repository", "class"]):
+        # Architecture checks - check for exact matches first
+        architecture_terms = ["abstractfactory", "dependencyinjection", "userrepository", "highcoupling"]
+        if any(term in code_lower.replace(" ", "").replace("_", "") for term in architecture_terms):
+            return "architecture"
+            
+        # Then check for individual keywords
+        if any(kw in code_lower for kw in ["abstract", "factory", "interface", "dependency", "injection", "repository", "coupling"]):
             return "architecture"
             
         # Fallback to router
