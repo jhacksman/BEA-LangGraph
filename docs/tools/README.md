@@ -1,28 +1,48 @@
 # Tool Usage Guide
 
-This guide explains how to use tools with the BEA-LangGraph library following the Model Context Protocol (MCP).
+This guide explains how to use tools with the BEA-LangGraph library following the Model Context Protocol (MCP) and Anthropic's research on building effective agents.
 
 ## Overview
 
-Tools in BEA-LangGraph are implemented following the MCP specification, providing:
-- Standardized message formats
-- Think tag processing
-- Tool call handling
-- Error management
+Tools in BEA-LangGraph are implemented following the MCP specification and Anthropic's guidance:
+
+1. **Simplicity**
+   - Clear, focused tools
+   - Direct interfaces
+   - Minimal state management
+
+2. **Standardization**
+   - MCP message formats
+   - Think tag processing
+   - Consistent error handling
+
+3. **Composability**
+   - Easy integration with patterns
+   - Modular design
+   - Clear interfaces
 
 ## Basic Usage
+
+Following Anthropic's guidance for clear, focused tools:
 
 ```python
 from bea_langgraph.common.mcp import MCPMessage, Tool
 
-# Define a tool
+# Define a tool with examples
 tool = Tool(
     name="calculator",
     description="Performs basic calculations",
     parameters={
         "operation": "string",
         "numbers": "list[float]"
-    }
+    },
+    examples=[{
+        "input": {
+            "operation": "add",
+            "numbers": [2, 2]
+        },
+        "output": "4"
+    }]
 )
 
 # Create a message with tool
@@ -31,7 +51,28 @@ message = MCPMessage(
     content="Calculate 2 + 2",
     tools=[tool]
 )
+
+# Document the tool
+from bea_langgraph.common.mcp import document_tool
+docs = document_tool(tool)  # Get standardized documentation
 ```
+
+### Tool Design Principles
+
+1. **Single Responsibility**
+   - Each tool should do one thing well
+   - Clear input/output interface
+   - Focused functionality
+
+2. **Clear Documentation**
+   - Descriptive names
+   - Example usage
+   - Parameter descriptions
+
+3. **Error Handling**
+   - Predictable errors
+   - Clear messages
+   - Recovery guidance
 
 ## Think Tag Processing
 
