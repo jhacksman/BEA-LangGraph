@@ -1,7 +1,7 @@
 """API response handlers for routing agent."""
 
 from typing import Dict, Any, List, Optional
-from ....basic_workflow.api.handlers import ResponseHandler
+from ...basic_workflow.api.handlers import ResponseHandler
 
 class RoutingResponseHandler(ResponseHandler):
     """Handler for routing-specific API responses."""
