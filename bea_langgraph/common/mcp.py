@@ -23,6 +23,16 @@ class Tool(BaseModel):
             for ex in self.examples
         ))
     
+    def __init__(self, **data):
+        """Initialize with validation."""
+        super().__init__(**data)
+        if not self.name:
+            raise ValueError("Tool name cannot be empty")
+        if not self.description:
+            raise ValueError("Tool description cannot be empty")
+        if self.examples and not self.has_examples:
+            raise ValueError("Invalid tool examples format")
+    
     class Config:
         validate_assignment = True
         arbitrary_types_allowed = True

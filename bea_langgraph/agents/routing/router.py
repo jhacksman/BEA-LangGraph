@@ -38,8 +38,13 @@ class Router:
         # Try exact matches first
         for route in self.routes.values():
             for keyword in route.all_keywords:
+                # Check for exact word/phrase matches
                 if f" {keyword} " in text:
+                    matches[route.name] = matches.get(route.name, 0) + 3
+                # Check for partial matches at word boundaries
+                elif any(f" {keyword}" in text or f"{keyword} " in text):
                     matches[route.name] = matches.get(route.name, 0) + 2
+                # Check for any occurrence as fallback
                 elif keyword in text:
                     matches[route.name] = matches.get(route.name, 0) + 1
         
