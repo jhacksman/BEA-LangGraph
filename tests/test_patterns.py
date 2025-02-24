@@ -1,0 +1,115 @@
+"""Integration tests for all implemented patterns."""
+
+import pytest
+from bea_langgraph.agents.basic_workflow.chain import DocumentWorkflow
+from bea_langgraph.agents.parallelization.workflow import ParallelWorkflow
+from bea_langgraph.agents.orchestrator.workflow import OrchestratorWorkflow
+from bea_langgraph.agents.evaluator.workflow import EvaluatorWorkflow
+from bea_langgraph.agents.basic_workflow.api.client import VeniceClient
+from bea_langgraph.common.mcp import MCPMessage, Tool
+
+@pytest.mark.asyncio
+async def test_pattern_integration():
+    """Test integration between different patterns."""
+    client = VeniceClient(api_key="test_key")
+    
+    # Test document workflow with parallelization
+    doc_workflow = DocumentWorkflow(config=None, client=client)
+    parallel_workflow = ParallelWorkflow(config=None, client=client)
+    
+    # Generate document sections in parallel
+    sections = ["Section 1", "Section 2", "Section 3"]
+    tasks = [
+        {"task_id": f"section_{i}", "content": section}
+        for i, section in enumerate(sections)
+    ]
+    
+    parallel_result = await parallel_workflow.process_tasks(tasks)
+    assert len(parallel_result.tasks) == len(sections)
+    
+    # Process combined document
+    doc_state = await doc_workflow.run({
+        "document": {"content": "\n\n".join(t.result for t in parallel_result.tasks)}
+    })
+    assert doc_state["document"].content
+    
+    # Test orchestrator with evaluator
+    orchestrator = OrchestratorWorkflow(config=None, client=client)
+    evaluator = EvaluatorWorkflow(config=None, client=client)
+    
+    # Break down and process task
+    task = {"description": "Complex task to evaluate"}
+    orchestrator_result = await orchestrator.execute(task)
+    assert orchestrator_result.subtasks
+    
+    # Evaluate results
+    for subtask in orchestrator_result.subtasks:
+        if subtask.result:
+            content, evaluation = await evaluator.evaluate_and_improve(
+                subtask.result,
+                criteria=["clarity", "completeness"]
+            )
+            assert evaluation.score >= 0.0
+            assert evaluation.score <= 1.0
+
+@pytest.mark.asyncio
+async def test_mcp_integration():
+    """Test MCP integration across patterns."""
+    client = VeniceClient(api_key="test_key")
+    
+    # Define test tool
+    tool = Tool(
+        name="test_tool",
+        description="Test tool",
+        parameters={"param": "string"}
+    )
+    
+    # Test with document workflow
+    doc_workflow = DocumentWorkflow(config=None, client=client)
+    message = MCPMessage(
+        role="user",
+        content="Test content",
+        tools=[tool]
+    )
+    
+    doc_state = await doc_workflow.run({
+        "document": {"content": ""},
+        "messages": [message.dict()]
+    })
+    assert doc_state["document"].content
+    
+    # Test with evaluator
+    evaluator = EvaluatorWorkflow(config=None, client=client)
+    content, evaluation = await evaluator.evaluate_and_improve(
+        doc_state["document"].content,
+        criteria=["clarity"]
+    )
+    assert evaluation.score >= 0.0
+    assert "think_process" in evaluation.metadata
+
+@pytest.mark.asyncio
+async def test_error_handling():
+    """Test error handling across patterns."""
+    client = VeniceClient(api_key="test_key")
+    
+    # Test parallel processing errors
+    parallel_workflow = ParallelWorkflow(config=None, client=client)
+    tasks = [
+        {"task_id": "1", "content": ""},  # Empty content
+        {"task_id": "2", "content": None}  # Invalid content
+    ]
+    
+    with pytest.raises(Exception):
+        await parallel_workflow.process_tasks(tasks)
+    
+    # Test orchestrator errors
+    orchestrator = OrchestratorWorkflow(config=None, client=client)
+    task = {"description": None}  # Invalid task
+    
+    with pytest.raises(Exception):
+        await orchestrator.execute(task)
+    
+    # Test evaluator errors
+    evaluator = EvaluatorWorkflow(config=None, client=client)
+    with pytest.raises(Exception):
+        await evaluator.evaluate_and_improve(None, [])  # Invalid input
