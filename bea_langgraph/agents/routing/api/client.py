@@ -1,7 +1,7 @@
 """Venice.ai API client for routing agent."""
 
 from typing import Dict, Any, AsyncGenerator
-from ....basic_workflow.api.client import VeniceClient
+from ...basic_workflow.api.client import VeniceClient
 
 class RoutingClient(VeniceClient):
     """Extended Venice.ai client with routing-specific functionality."""
