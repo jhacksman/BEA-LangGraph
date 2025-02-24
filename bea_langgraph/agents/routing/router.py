@@ -1,25 +1,30 @@
 """Router implementation following Anthropic's routing workflow pattern."""
 
-from typing import List
-from .models import Route, RouterConfig
+from typing import List, Dict
+from .models import Route
 
 class Router:
-    """Simple router that classifies input and directs to specialized handlers."""
+    """Simple router that classifies input based on keywords."""
     
-    def __init__(self, routes: List[Route], default_handler: str):
-        """Initialize router with routes and default handler."""
+    def __init__(self, routes: Dict[str, List[str]]):
+        """Initialize router with route definitions.
+        
+        Args:
+            routes: Dictionary mapping handler names to their keywords
+        """
         self.routes = routes
-        self.default_handler = default_handler
         
-    async def route(self, input_text: str) -> str:
-        """Route input to appropriate handler based on classification."""
-        # Simple classification and routing
-        for route in self.routes:
-            if self._matches_criteria(input_text, route.criteria):
-                return route.handler
-        return self.default_handler
+    async def route(self, text: str) -> str:
+        """Route text to appropriate handler based on keywords.
         
-    def _matches_criteria(self, input_text: str, criteria: List[str]) -> bool:
-        """Check if input matches route criteria."""
-        input_lower = input_text.lower()
-        return any(keyword.lower() in input_lower for keyword in criteria)
+        Args:
+            text: Input text to classify
+            
+        Returns:
+            Handler name for the matched route or 'default'
+        """
+        text = text.lower()
+        for handler, keywords in self.routes.items():
+            if any(kw.lower() in text for kw in keywords):
+                return handler
+        return 'default'

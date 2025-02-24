@@ -1,16 +1,10 @@
 """Models for routing workflow implementation."""
 
-from typing import List
+from typing import List, Dict
 from pydantic import BaseModel
 
 class Route(BaseModel):
-    """Represents a route with its handler and criteria."""
+    """Simple route definition with keywords for classification."""
     name: str
-    description: str
-    criteria: List[str]
+    keywords: List[str]
     handler: str
-
-class RouterConfig(BaseModel):
-    """Configuration for the routing workflow."""
-    routes: List[Route]
-    default_handler: str
