@@ -41,11 +41,20 @@ async def test_pattern_integration():
     assert doc_state["document"].content
     
     # Test orchestrator with evaluator
-    orchestrator = OrchestratorWorkflow(config=None, client=client)
-    evaluator = EvaluatorWorkflow(config=None, client=client)
+    from bea_langgraph.agents.orchestrator.models import Task, OrchestratorConfig
+    from bea_langgraph.agents.evaluator.models import EvaluatorConfig
+    
+    orchestrator = OrchestratorWorkflow(
+        config=OrchestratorConfig(timeout_per_task=30.0),
+        client=client
+    )
+    evaluator = EvaluatorWorkflow(
+        config=EvaluatorConfig(timeout_per_evaluation=30.0),
+        client=client
+    )
     
     # Break down and process task
-    task = {"description": "Complex task to evaluate"}
+    task = Task(description="Complex task to evaluate")
     orchestrator_result = await orchestrator.execute(task)
     assert orchestrator_result.subtasks
     

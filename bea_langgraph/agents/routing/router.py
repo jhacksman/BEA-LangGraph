@@ -32,6 +32,11 @@ class Router:
         Returns:
             Handler name for the matched route or 'default'
         """
+        # Check for general queries first
+        general_terms = ["general", "hello", "hi", "help", "question", "inquiry", "feedback"]
+        if any(term in text.lower() for term in general_terms):
+            return "default"
+            
         text = text.lower()
         words = text.split()
         matches = {}
